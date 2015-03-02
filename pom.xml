@@ -10,7 +10,7 @@
 
     <groupId>im.chic.weixin</groupId>
     <artifactId>weixin-utils-root</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Weixin Utils</name>
@@ -41,6 +41,7 @@
     <properties>
         <guava.version>18.0</guava.version>
         <junit.version>4.12</junit.version>
+        <crypto-utils.version>1.2.0</crypto-utils.version>
     </properties>
 
     <modules>
@@ -50,6 +51,11 @@
     <dependencyManagement>
         <dependencies>
             <!-- 3rd party dependencies -->
+            <dependency>
+                <groupId>im.chic.crypto</groupId>
+                <artifactId>crypto-utils</artifactId>
+                <version>${crypto-utils.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
