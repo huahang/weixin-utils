@@ -10,7 +10,7 @@
 
     <groupId>im.chic.weixin</groupId>
     <artifactId>weixin-utils-root</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <packaging>pom</packaging>
 
     <name>Weixin Utils</name>
