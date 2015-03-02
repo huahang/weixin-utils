@@ -39,9 +39,10 @@
     </developers>
 
     <properties>
-        <guava.version>18.0</guava.version>
         <junit.version>4.12</junit.version>
         <crypto-utils.version>1.2.0</crypto-utils.version>
+        <okhttp.version>2.2.0</okhttp.version>
+        <retrofit.version>1.9.0</retrofit.version>
     </properties>
 
     <modules>
@@ -57,9 +58,19 @@
                 <version>${crypto-utils.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
+                <groupId>com.squareup.okhttp</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp</groupId>
+                <artifactId>okhttp-urlconnection</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.retrofit</groupId>
+                <artifactId>retrofit</artifactId>
+                <version>${retrofit.version}</version>
             </dependency>
             <!-- test dependencies -->
             <dependency>
