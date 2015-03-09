@@ -47,6 +47,9 @@
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <scala.version>2.10.4</scala.version>
         <gson.version>2.3.1</gson.version>
+        <curator-recipes.version>2.7.1</curator-recipes.version>
+        <json.version>20141113</json.version>
+        <commons-io.version>2.4</commons-io.version>
     </properties>
 
     <modules>
@@ -60,6 +63,21 @@
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
                 <version>${scala.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator-recipes.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
