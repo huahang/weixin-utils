@@ -48,7 +48,7 @@
         <scala.version>2.10.4</scala.version>
         <gson.version>2.3.1</gson.version>
         <curator-recipes.version>2.7.1</curator-recipes.version>
-        <json.version>20141113</json.version>
+        <json.version>20131018</json.version>
         <commons-io.version>2.4</commons-io.version>
     </properties>
 
