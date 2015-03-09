@@ -124,6 +124,7 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
                 }
             } catch (Throwable t) {
                 logger.error("Hit an error", t);
+                needRefresh = true;
             }
             if (needRefresh) {
                 logger.info("Will refresh tokens");
