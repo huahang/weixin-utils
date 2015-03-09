@@ -1,6 +1,7 @@
 package im.chic.weixin.utils;
 
 import com.google.common.base.Charsets;
+import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -9,8 +10,6 @@ import org.apache.curator.framework.recipes.atomic.DistributedAtomicValue;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RestAdapter;
@@ -24,6 +23,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class TokenCache extends LeaderSelectorListenerAdapter implements Closeable {
     private static Logger logger = LoggerFactory.getLogger(TokenCache.class);
+
+    private static class CachedTokens {
+        public String access_token = null;
+        public String js_ticket = null;
+        public Long update_time = null;
+    }
 
     private static final TokenCache instance = new TokenCache();
 
@@ -44,7 +49,8 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
         try {
             instance.initialize();
             String stringValue = new String(instance.value.get().postValue(), Charsets.UTF_8);
-            return new JSONObject(stringValue).optString("access_token", null);
+            CachedTokens cachedTokens = (new Gson()).fromJson(stringValue, CachedTokens.class);
+            return cachedTokens.access_token;
         } catch (Throwable t) {
             logger.error("Hit an error!", t);
         }
@@ -55,7 +61,8 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
         try {
             instance.initialize();
             String stringValue = new String(instance.value.get().postValue(), Charsets.UTF_8);
-            return new JSONObject(stringValue).optString("js_ticket", null);
+            CachedTokens cachedTokens = (new Gson()).fromJson(stringValue, CachedTokens.class);
+            return cachedTokens.js_ticket;
         } catch (Throwable t) {
             logger.error("Hit an error!", t);
         }
@@ -99,31 +106,39 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
     public void takeLeadership(CuratorFramework curatorFramework) {
         logger.info("Leadership taken");
         try {
-            String stringValue = new String(value.get().postValue(), Charsets.UTF_8);
-            try {
-                JSONObject jsonValue = new JSONObject(stringValue);
-                String accessToken = jsonValue.optString("access_token", "");
-                String jsTicket = jsonValue.optString("js_ticket", "");
-                long updateTime = jsonValue.optLong("update_time", 0);
-                if (StringUtils.isBlank(accessToken) ||
-                        StringUtils.isBlank(jsTicket) ||
-                        (System.currentTimeMillis() - updateTime) > TimeUnit.MINUTES.toMillis(30)) {
-                    logger.info("Will refresh tokens");
-                    RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
-                    WeixinAPI weixinAPI = adapter.create(WeixinAPI.class);
-                    WeixinAPI.Token token = weixinAPI.getToken("client_credential", WeixinConfig.getAppID(), WeixinConfig.getAppSecret());
-                    WeixinAPI.Ticket ticket = weixinAPI.getTicket(token.access_token, "jsapi");
-                    jsonValue.put("access_token", token.access_token);
-                    jsonValue.put("js_ticket", ticket.ticket);
-                    jsonValue.put("update_time", System.currentTimeMillis());
-                    value.forceSet(jsonValue.toString().getBytes(Charsets.UTF_8));
-                    logger.info("Tokens refreshed");
-                } else {
-                    Thread.sleep(TimeUnit.SECONDS.toMillis(60));
+            boolean needRefresh = false;
+            try{
+                String stringValue = new String(value.get().postValue(), Charsets.UTF_8);
+                CachedTokens cachedTokens = (new Gson()).fromJson(stringValue, CachedTokens.class);
+                String accessToken = null == cachedTokens ? null : cachedTokens.access_token;
+                String jsTicket = null == cachedTokens ? null : cachedTokens.js_ticket;
+                Long updateTime = null == cachedTokens ? null : cachedTokens.update_time;
+                if (StringUtils.isBlank(accessToken)) {
+                    needRefresh = true;
                 }
-            } catch (JSONException e) {
-                logger.error("Value not JSON: {}", stringValue);
-                value.forceSet("{}".getBytes());
+                if (StringUtils.isBlank(jsTicket)) {
+                    needRefresh = true;
+                }
+                if (null == updateTime || (System.currentTimeMillis() - updateTime) > TimeUnit.MINUTES.toMillis(30)) {
+                    needRefresh = true;
+                }
+            } catch (Throwable t) {
+                logger.error("Hit an error", t);
+            }
+            if (needRefresh) {
+                logger.info("Will refresh tokens");
+                RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
+                WeixinAPI weixinAPI = adapter.create(WeixinAPI.class);
+                WeixinAPI.Token token = weixinAPI.getToken("client_credential", WeixinConfig.getAppID(), WeixinConfig.getAppSecret());
+                WeixinAPI.Ticket ticket = weixinAPI.getTicket(token.access_token, "jsapi");
+                CachedTokens cachedTokens = new CachedTokens();
+                cachedTokens.access_token = token.access_token;
+                cachedTokens.js_ticket = ticket.ticket;
+                cachedTokens.update_time = System.currentTimeMillis();
+                value.forceSet((new Gson()).toJson(cachedTokens).getBytes(Charsets.UTF_8));
+                logger.info("Tokens refreshed");
+            } else {
+                Thread.sleep(TimeUnit.SECONDS.toMillis(60));
             }
         } catch (InterruptedException e) {
             logger.error("Interrupted", e);

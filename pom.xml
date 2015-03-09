@@ -10,7 +10,7 @@
 
     <groupId>im.chic.weixin</groupId>
     <artifactId>weixin-utils-root</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Weixin Utils</name>
@@ -48,7 +48,6 @@
         <scala.version>2.10.4</scala.version>
         <gson.version>2.3.1</gson.version>
         <curator-recipes.version>2.7.1</curator-recipes.version>
-        <json.version>20131018</json.version>
         <commons-io.version>2.4</commons-io.version>
     </properties>
 
@@ -68,11 +67,6 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>${curator-recipes.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.json</groupId>
-                <artifactId>json</artifactId>
-                <version>${json.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
