@@ -20,7 +20,7 @@ public interface WeixinAPI {
     }
 
     @GET("/cgi-bin/token")
-    Token getToken(
+    public Token getToken(
             @Query("grant_type") String grantType,
             @Query("appid") String appID,
             @Query("secret") String secret
@@ -34,7 +34,7 @@ public interface WeixinAPI {
     }
 
     @GET("/cgi-bin/ticket/getticket")
-    Ticket getTicket(
+    public Ticket getTicket(
             @Query("access_token") String accessToken,
             @Query("type") String type
     );
@@ -73,7 +73,7 @@ public interface WeixinAPI {
     }
 
     @POST("/device/authorize_device")
-    void authorizeDevice(
+    public void authorizeDevice(
             @Query("access_token") String accessToken,
             @Body AuthorizeDeviceRequest request,
             Callback<AuthorizeDeviceResponse> callback
@@ -96,9 +96,11 @@ public interface WeixinAPI {
     }
 
     @POST("/device/create_qrcode")
-    void createQRCode(
+    public void createQRCode(
             @Query("access_token") String accessToken,
             @Body CreateQRCodeRequest request,
             Callback<CreateQRCodeResponse> callback
     );
+
+
 }
