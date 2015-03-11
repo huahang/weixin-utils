@@ -1,8 +1,7 @@
-package im.chic.weixin.utils;
+package im.chic.weixin.utils.api;
 
 import retrofit.Callback;
 import retrofit.http.Body;
-import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
@@ -11,34 +10,7 @@ import java.util.ArrayList;
 /**
  * @author huahang
  */
-public interface WeixinAPI {
-    public static class Token {
-        public Long errcode;
-        public String errmsg;
-        public String access_token;
-        public Long expires_in;
-    }
-
-    @GET("/cgi-bin/token")
-    public Token getToken(
-            @Query("grant_type") String grantType,
-            @Query("appid") String appID,
-            @Query("secret") String secret
-    );
-
-    public static class Ticket {
-        public Long errcode;
-        public String errmsg;
-        public String ticket;
-        public Long expires_in;
-    }
-
-    @GET("/cgi-bin/ticket/getticket")
-    public Ticket getTicket(
-            @Query("access_token") String accessToken,
-            @Query("type") String type
-    );
-
+public interface WeixinDeviceAPI {
     public static class AuthorizeDeviceRequest {
         public static class Device {
             public String id = "";
@@ -102,5 +74,23 @@ public interface WeixinAPI {
             Callback<CreateQRCodeResponse> callback
     );
 
+    public static class GetBindDeviceResponse {
+        public static class RespMsg {
+            public int ret_code = 0;
+            public String error_info = "ok";
+        }
+        public static class Device {
+            public String device_type = "";
+            public String device_id = "";
+        }
+        public RespMsg resp_msg = new RespMsg();
+        public String openid = "";
+        public ArrayList<Device> device_list = new ArrayList<Device>();
+    }
 
+    @POST("/device/get_bind_device")
+    public GetBindDeviceResponse getBindDevice(
+            @Query("access_token") String accessToken,
+            @Query("openid") String openId
+    );
 }

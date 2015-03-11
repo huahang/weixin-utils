@@ -2,6 +2,7 @@ package im.chic.weixin.utils;
 
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
+import im.chic.weixin.utils.api.WeixinAPI;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
