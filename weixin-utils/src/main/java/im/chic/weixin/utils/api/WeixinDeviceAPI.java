@@ -2,6 +2,7 @@ package im.chic.weixin.utils.api;
 
 import retrofit.Callback;
 import retrofit.http.Body;
+import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
@@ -88,7 +89,7 @@ public interface WeixinDeviceAPI {
         public ArrayList<Device> device_list = new ArrayList<Device>();
     }
 
-    @POST("/device/get_bind_device")
+    @GET("/device/get_bind_device")
     public GetBindDeviceResponse getBindDevice(
             @Query("access_token") String accessToken,
             @Query("openid") String openId
