@@ -94,4 +94,90 @@ public interface WeixinDeviceAPI {
             @Query("access_token") String accessToken,
             @Query("openid") String openId
     );
+
+    public static class BindDeviceRequest {
+        public String ticket = "";
+        public String device_id = "";
+        public String openid = "";
+    }
+
+    public static class BindDeviceResponse {
+        public static class BaseResp {
+            public int errcode = 0;
+            public String errmsg = "ok";
+        }
+        public BaseResp base_resp = new BaseResp();
+        public int errcode = 0;
+        public String errmsg = "ok";
+    }
+
+    @POST("/device/bind")
+    public BindDeviceResponse bind(
+            @Query("access_token") String accessToken,
+            @Body BindDeviceRequest request
+    );
+
+    public static class UnbindDeviceRequest {
+        public String ticket = "";
+        public String device_id = "";
+        public String openid = "";
+    }
+
+    public static class UnbindDeviceResponse {
+        public static class BaseResp {
+            public int errcode = 0;
+            public String errmsg = "ok";
+        }
+        public BaseResp base_resp = new BaseResp();
+        public int errcode = 0;
+        public String errmsg = "ok";
+    }
+
+    @POST("/device/unbind")
+    public UnbindDeviceResponse unbind(
+            @Query("access_token") String accessToken,
+            @Body UnbindDeviceRequest request
+    );
+
+    public static class CompelBindDeviceRequest {
+        public String device_id = "";
+        public String openid = "";
+    }
+
+    public static class CompelBindDeviceResponse {
+        public static class BaseResp {
+            public int errcode = 0;
+            public String errmsg = "ok";
+        }
+        public BaseResp base_resp = new BaseResp();
+        public int errcode = 0;
+        public String errmsg = "ok";
+    }
+
+    @POST("/device/compel_bind")
+    public CompelBindDeviceResponse compelBind(
+            @Query("access_token") String accessToken,
+            @Body CompelBindDeviceRequest request
+    );
+
+    public static class CompelUnbindDeviceRequest {
+        public String device_id = "";
+        public String openid = "";
+    }
+
+    public static class CompelUnbindDeviceResponse {
+        public static class BaseResp {
+            public int errcode = 0;
+            public String errmsg = "ok";
+        }
+        public BaseResp base_resp = new BaseResp();
+        public int errcode = 0;
+        public String errmsg = "ok";
+    }
+
+    @POST("/device/compel_unbind")
+    public CompelUnbindDeviceResponse compelUnbind(
+            @Query("access_token") String accessToken,
+            @Body CompelUnbindDeviceRequest request
+    );
 }
