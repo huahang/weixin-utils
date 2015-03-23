@@ -49,6 +49,8 @@
         <gson.version>2.3.1</gson.version>
         <curator-recipes.version>2.7.1</curator-recipes.version>
         <commons-io.version>2.4</commons-io.version>
+        <slf4j-log4j12.version>1.7.10</slf4j-log4j12.version>
+        <json.version>20090211</json.version>
     </properties>
 
     <modules>
@@ -108,11 +110,21 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
             <!-- test dependencies -->
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j-log4j12.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
