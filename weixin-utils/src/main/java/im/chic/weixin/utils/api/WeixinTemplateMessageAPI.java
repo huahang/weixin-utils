@@ -6,7 +6,7 @@ import retrofit.http.Query;
 import org.json.JSONObject;
 
 /**
- * Created by huahang on 15-3-23.
+ * @author huahang
  */
 public interface WeixinTemplateMessageAPI {
     @POST("/cgi-bin/message/template/send")

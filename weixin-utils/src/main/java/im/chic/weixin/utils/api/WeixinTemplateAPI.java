@@ -2,7 +2,6 @@ package im.chic.weixin.utils.api;
 
 import com.google.gson.annotations.SerializedName;
 import retrofit.http.Body;
-import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.Query;
 
