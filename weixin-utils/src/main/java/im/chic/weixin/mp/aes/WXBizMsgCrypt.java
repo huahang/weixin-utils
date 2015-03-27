@@ -199,14 +199,11 @@ public class WXBizMsgCrypt {
     public String encryptMsg(String replyMsg, String timestamp, String nonce) throws AesException {
         // 加密
         String encrypt = encrypt(getRandomStr(), replyMsg);
-
         // 生成安全签名
         if (timestamp == "") {
             timestamp = Long.toString(System.currentTimeMillis());
         }
-
         String signature = SHA1.getSHA1(token, timestamp, nonce, encrypt);
-
         // System.out.println("发送给平台的签名是: " + signature[1].toString());
         // 生成发送的xml
         String result = XMLParse.generate(encrypt, signature, timestamp, nonce);
@@ -229,23 +226,18 @@ public class WXBizMsgCrypt {
      * @return 解密后的原文
      * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息
      */
-    public String decryptMsg(String msgSignature, String timestamp, String nonce, String postData)
-            throws AesException {
-
+    public String decryptMsg(String msgSignature, String timestamp, String nonce, String postData) throws AesException {
         // 密钥，公众账号的app secret
         // 提取密文
         Object[] encrypt = XMLParse.extract(postData);
-
         // 验证安全签名
         String signature = SHA1.getSHA1(token, timestamp, nonce, encrypt[1].toString());
-
         // 和URL中的签名比较是否相等
         // System.out.println("第三方收到URL中的签名：" + msg_sign);
         // System.out.println("第三方校验签名：" + signature);
         if (!signature.equals(msgSignature)) {
             throw new AesException(AesException.ValidateSignatureError);
         }
-
         // 解密
         String result = decrypt(encrypt[1].toString());
         return result;
@@ -261,14 +253,11 @@ public class WXBizMsgCrypt {
      * @return 解密之后的echostr
      * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息
      */
-    public String verifyUrl(String msgSignature, String timestamp, String nonce, String echoStr)
-            throws AesException {
+    public String verifyUrl(String msgSignature, String timestamp, String nonce, String echoStr) throws AesException {
         String signature = SHA1.getSHA1(token, timestamp, nonce, echoStr);
-
         if (!signature.equals(msgSignature)) {
             throw new AesException(AesException.ValidateSignatureError);
         }
-
         String result = decrypt(echoStr);
         return result;
     }

@@ -23,7 +23,7 @@ class XMLParse {
 	 * @return 提取出的加密消息字符串
 	 * @throws AesException 
 	 */
-	public static Object[] extract(String xmltext) throws AesException     {
+	public static Object[] extract(String xmltext) throws AesException {
 		Object[] result = new Object[3];
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
