@@ -10,7 +10,7 @@
 
     <groupId>im.chic.weixin</groupId>
     <artifactId>weixin-utils-root</artifactId>
-    <version>1.0.8-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Weixin Utils</name>
@@ -41,7 +41,7 @@
     <properties>
         <junit.version>4.12</junit.version>
         <crypto-utils.version>1.2.0</crypto-utils.version>
-        <okhttp.version>2.2.0</okhttp.version>
+        <okhttp.version>2.3.0</okhttp.version>
         <retrofit.version>1.9.0</retrofit.version>
         <commons-logging.version>1.2</commons-logging.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>

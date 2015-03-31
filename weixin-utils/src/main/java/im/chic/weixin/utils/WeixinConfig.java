@@ -1,72 +1,95 @@
 package im.chic.weixin.utils;
 
+import com.google.common.io.Closer;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Properties;
 
 /**
  * @author huahang
  */
 public class WeixinConfig {
-    private static final String PROPERTIES_FILE = "im.chic.weixin.utils.tokencache.properties";
+    private static Logger logger = LoggerFactory.getLogger(WeixinConfig.class);
 
-    private static final String APP_ID = "tokencache.app_id";
-    private static final String APP_SECRET = "tokencache.app_secret";
-    private static final String ZK_PATH = "tokencache.zk_path";
-    private static final String ZK_SERVER_LIST = "tokencache.zk_server_list";
-
-    private static final Object lock = new Object();
-
-    private static String appID = null;
-    private static String appSecret = null;
-    private static String zkPath = null;
-    private static String zkServerList = null;
-
-    private static void loadProperties() {
-        try {
-            synchronized (lock) {
-                Properties properties = new Properties();
-                properties.load(WeixinConfig.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE));
-                appID = properties.getProperty(APP_ID);
-                Validate.notEmpty(StringUtils.trimToNull(appID), "Empty Weixin app ID");
-                appSecret = properties.getProperty(APP_SECRET);
-                Validate.notEmpty(StringUtils.trimToNull(appSecret), "Empty Weixin app secret");
-                zkPath = properties.getProperty(ZK_PATH);
-                Validate.notEmpty(StringUtils.trimToNull(zkPath), "Empty ZK path");
-                zkServerList = properties.getProperty(ZK_SERVER_LIST);
-                Validate.notEmpty(StringUtils.trimToNull(zkServerList), "Empty ZK server list");
-            }
-        } catch (Throwable t) {
-            throw new RuntimeException("Unable to load properties", t);
-        }
+    public static class Item {
+        @SerializedName("app_id")
+        public String appID = "";
+        @SerializedName("app_secret")
+        public String appSecret = "";
+        @SerializedName("weixin_id")
+        public String weixinID = "";
+        @SerializedName("message_encryption")
+        public boolean messageEncryption = false;
+        @SerializedName("message_token")
+        public String messageToken = "";
+        @SerializedName("message_key")
+        public String messageKey = "";
+        @SerializedName("comment")
+        public String comment = "";
     }
 
-    public static String getAppID() {
-        if (StringUtils.isBlank(appID)) {
-            loadProperties();
-        }
-        return appID;
-    }
+    @SerializedName("config_map")
+    public HashMap<String, Item> configMap = new HashMap<String, Item>();
 
-    public static String getAppSecret() {
-        if (StringUtils.isBlank(appSecret)) {
-            loadProperties();
-        }
-        return appSecret;
-    }
+    @SerializedName("zk_path")
+    public String zkPath = "";
+
+    @SerializedName("zk_server_list")
+    public String zkServerList = "";
 
     public static String getZKPath() {
-        if (StringUtils.isBlank(zkPath)) {
-            loadProperties();
-        }
-        return zkPath;
+        return config.zkPath;
     }
 
     public static String getZKServerList() {
-        if (StringUtils.isBlank(zkServerList)) {
-            loadProperties();
+        return config.zkServerList;
+    }
+
+    public static Collection<String> getApps() {
+        return config.configMap.keySet();
+    }
+
+    public static Item get(String appID) {
+        if (!config.configMap.containsKey(appID)) {
+            logger.error("Config for weixin app {} not found!", appID);
+            return null;
         }
-        return zkServerList;
+        return config.configMap.get(appID);
+    }
+
+    private static WeixinConfig load() throws IOException {
+        Closer closer = Closer.create();
+        try {
+            InputStreamReader reader = new InputStreamReader(WeixinConfig.class.getClassLoader().getResourceAsStream("im.chic.weixin.utils.tokencache.json"));
+            closer.register(reader);
+            Gson gson = new Gson();
+            return gson.fromJson(reader, WeixinConfig.class);
+        } catch (Throwable e) {
+            throw closer.rethrow(e);
+        } finally {
+            closer.close();
+        }
+    }
+
+    private static final WeixinConfig config;
+    static {
+        try {
+            config = load();
+        } catch (Throwable t) {
+            logger.error("Fatal error!", t);
+            throw new RuntimeException(t);
+        }
     }
 }

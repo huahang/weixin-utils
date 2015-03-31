@@ -2,6 +2,7 @@ package im.chic.weixin.utils;
 
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import im.chic.weixin.utils.api.WeixinAPI;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,8 @@ import retrofit.RestAdapter;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,9 +29,16 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
     private static Logger logger = LoggerFactory.getLogger(TokenCache.class);
 
     private static class CachedTokens {
-        public String access_token = null;
-        public String js_ticket = null;
-        public Long update_time = null;
+        private static class Item {
+            @SerializedName("access_token")
+            public String accessToken = "";
+            @SerializedName("js_ticket")
+            public String jsTicket = "";
+        }
+        @SerializedName("update_time")
+        public long updateTime = 0;
+        @SerializedName("map")
+        public HashMap<String, Item> map = new HashMap<String, Item>();
     }
 
     private static final TokenCache instance = new TokenCache();
@@ -46,24 +56,22 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
         return instance.leaderSelector.hasLeadership();
     }
 
-    public static String getAccessToken() {
+    public static String getAccessToken(String appID) {
         try {
             instance.initialize();
-            String stringValue = new String(instance.value.get().postValue(), Charsets.UTF_8);
-            CachedTokens cachedTokens = (new Gson()).fromJson(stringValue, CachedTokens.class);
-            return cachedTokens.access_token;
+            CachedTokens cachedTokens = instance.getCachedTokens();
+            return cachedTokens.map.get(appID).accessToken;
         } catch (Throwable t) {
             logger.error("Hit an error!", t);
         }
         return null;
     }
 
-    public static String getJsTicket() {
+    public static String getJsTicket(String appID) {
         try {
             instance.initialize();
-            String stringValue = new String(instance.value.get().postValue(), Charsets.UTF_8);
-            CachedTokens cachedTokens = (new Gson()).fromJson(stringValue, CachedTokens.class);
-            return cachedTokens.js_ticket;
+            CachedTokens cachedTokens = instance.getCachedTokens();
+            return cachedTokens.map.get(appID).jsTicket;
         } catch (Throwable t) {
             logger.error("Hit an error!", t);
         }
@@ -94,12 +102,11 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
 
     private CuratorFramework client = null;
     private LeaderSelector leaderSelector = null;
-
     private DistributedAtomicValue value = null;
 
     private boolean initialized = false;
 
-    public void close() throws IOException {
+    public void close() {
         IOUtils.closeQuietly(leaderSelector);
         IOUtils.closeQuietly(client);
     }
@@ -109,18 +116,10 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
         try {
             boolean needRefresh = false;
             try{
-                String stringValue = new String(value.get().postValue(), Charsets.UTF_8);
-                CachedTokens cachedTokens = (new Gson()).fromJson(stringValue, CachedTokens.class);
-                String accessToken = null == cachedTokens ? null : cachedTokens.access_token;
-                String jsTicket = null == cachedTokens ? null : cachedTokens.js_ticket;
-                Long updateTime = null == cachedTokens ? null : cachedTokens.update_time;
-                if (StringUtils.isBlank(accessToken)) {
-                    needRefresh = true;
-                }
-                if (StringUtils.isBlank(jsTicket)) {
-                    needRefresh = true;
-                }
-                if (null == updateTime || (System.currentTimeMillis() - updateTime) > TimeUnit.MINUTES.toMillis(30)) {
+                CachedTokens cachedTokens = getCachedTokens();
+                long updateTime = (null == cachedTokens) ? 0 : cachedTokens.updateTime;
+                long duration = System.currentTimeMillis() - updateTime;
+                if (duration < 0 || duration > TimeUnit.MINUTES.toMillis(30)) {
                     needRefresh = true;
                 }
             } catch (Throwable t) {
@@ -129,14 +128,19 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
             }
             if (needRefresh) {
                 logger.info("Will refresh tokens");
-                RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
-                WeixinAPI weixinAPI = adapter.create(WeixinAPI.class);
-                WeixinAPI.Token token = weixinAPI.getToken("client_credential", WeixinConfig.getAppID(), WeixinConfig.getAppSecret());
-                WeixinAPI.Ticket ticket = weixinAPI.getTicket(token.access_token, "jsapi");
+                Collection<String> apps = WeixinConfig.getApps();
                 CachedTokens cachedTokens = new CachedTokens();
-                cachedTokens.access_token = token.access_token;
-                cachedTokens.js_ticket = ticket.ticket;
-                cachedTokens.update_time = System.currentTimeMillis();
+                for (String app : apps) {
+                    RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
+                    WeixinAPI weixinAPI = adapter.create(WeixinAPI.class);
+                    WeixinConfig.Item item = WeixinConfig.get(app);
+                    WeixinAPI.Token token = weixinAPI.getToken("client_credential", item.appID, item.appSecret);
+                    WeixinAPI.Ticket ticket = weixinAPI.getTicket(token.access_token, "jsapi");
+                    CachedTokens.Item cacheTokenItem = new CachedTokens.Item();
+                    cacheTokenItem.accessToken = token.access_token;
+                    cacheTokenItem.jsTicket = ticket.ticket;
+                }
+                cachedTokens.updateTime = System.currentTimeMillis();
                 value.forceSet((new Gson()).toJson(cachedTokens).getBytes(Charsets.UTF_8));
                 logger.info("Tokens refreshed");
             } else {
@@ -150,5 +154,16 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
         } finally {
             logger.info("Relinquishing leadership.");
         }
+    }
+
+    public CachedTokens getCachedTokens() {
+        try {
+            String stringValue = new String(value.get().postValue(), Charsets.UTF_8);
+            CachedTokens cachedTokens = (new Gson()).fromJson(stringValue, CachedTokens.class);
+            return cachedTokens;
+        } catch (Throwable t) {
+            logger.error("Hit an error!", t);
+        }
+        return null;
     }
 }

@@ -1,0 +1,20 @@
+{
+  "config_map": {
+    "app1": {
+      "app_id": "app1",
+      "app_secret": "secret1",
+      "weixin_id": "gh_1",
+      "message_key": "key1",
+      "message_token": "token1"
+    },
+    "app2": {
+      "app_id": "app2",
+      "app_secret": "secret2",
+      "weixin_id": "gh_2",
+      "message_key": "key2",
+      "message_token": "token2"
+    }
+  },
+  "zk_path": "/path",
+  "zk_server_list": "127.0.0.1:8088"
+}
