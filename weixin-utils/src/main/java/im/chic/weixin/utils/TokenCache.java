@@ -54,7 +54,7 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
 
     public static boolean isLeader() throws Exception {
         instance.initialize();
-        return instance.leaderSelector.hasLeadership();
+        return (null != instance.leaderSelector) && instance.leaderSelector.hasLeadership();
     }
 
     public static String getAccessToken(String appID) {
@@ -133,7 +133,10 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
                 logger.info("Will refresh tokens");
                 Collection<String> apps = WeixinConfig.getApps();
                 logger.debug("Apps: {}", apps);
-                CachedTokens cachedTokens = new CachedTokens();
+                CachedTokens cachedTokens = getCachedTokens();
+                if (null == cachedTokens) {
+                    cachedTokens = new CachedTokens();
+                }
                 for (String app : apps) {
                     RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
                     WeixinAPI weixinAPI = adapter.create(WeixinAPI.class);
