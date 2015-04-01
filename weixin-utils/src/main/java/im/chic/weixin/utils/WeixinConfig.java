@@ -49,6 +49,9 @@ public class WeixinConfig {
     @SerializedName("zk_server_list")
     public String zkServerList = "";
 
+    @SerializedName("leader_mode")
+    public boolean leaderMode = false;
+
     public static String getZKPath() {
         return config.zkPath;
     }
@@ -67,6 +70,10 @@ public class WeixinConfig {
             return null;
         }
         return config.configMap.get(appID);
+    }
+
+    public static boolean isLeaderMode() {
+        return config.leaderMode;
     }
 
     private static WeixinConfig load() throws IOException {

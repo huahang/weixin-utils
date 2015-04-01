@@ -12,6 +12,7 @@ import org.apache.curator.framework.recipes.atomic.DistributedAtomicValue;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RestAdapter;
@@ -90,9 +91,11 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
                     client.start();
                     client.blockUntilConnected();
                     logger.info("ZK connected");
-                    leaderSelector = new LeaderSelector(client, getZkLeaderPath(), this);
-                    leaderSelector.autoRequeue();
-                    leaderSelector.start();
+                    if (WeixinConfig.isLeaderMode()) {
+                        leaderSelector = new LeaderSelector(client, getZkLeaderPath(), this);
+                        leaderSelector.autoRequeue();
+                        leaderSelector.start();
+                    }
                     value = new DistributedAtomicValue(client, getZkValuePath(), new ExponentialBackoffRetry(1000, 10));
                     initialized = true;
                 }
@@ -129,6 +132,7 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
             if (needRefresh) {
                 logger.info("Will refresh tokens");
                 Collection<String> apps = WeixinConfig.getApps();
+                logger.debug("Apps: {}", apps);
                 CachedTokens cachedTokens = new CachedTokens();
                 for (String app : apps) {
                     RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
@@ -139,9 +143,10 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
                     CachedTokens.Item cacheTokenItem = new CachedTokens.Item();
                     cacheTokenItem.accessToken = token.access_token;
                     cacheTokenItem.jsTicket = ticket.ticket;
+                    cachedTokens.map.put(app, cacheTokenItem);
                 }
                 cachedTokens.updateTime = System.currentTimeMillis();
-                value.forceSet((new Gson()).toJson(cachedTokens).getBytes(Charsets.UTF_8));
+                setCachedTokens(cachedTokens);
                 logger.info("Tokens refreshed");
             } else {
                 Thread.sleep(TimeUnit.SECONDS.toMillis(60));
@@ -165,5 +170,16 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
             logger.error("Hit an error!", t);
         }
         return null;
+    }
+
+    public void setCachedTokens(CachedTokens cachedTokens) {
+        try {
+            Gson gson = new Gson();
+            String valueString = (new JSONObject(gson.toJson(cachedTokens))).toString(2);
+            logger.debug("Tokens to be cached: {}", valueString);
+            value.forceSet(valueString.getBytes(Charsets.UTF_8));
+        } catch (Throwable t) {
+            logger.error("Unknown error", t);
+        }
     }
 }

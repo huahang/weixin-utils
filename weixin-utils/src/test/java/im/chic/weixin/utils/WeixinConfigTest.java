@@ -2,6 +2,7 @@ package im.chic.weixin.utils;
 
 import com.google.gson.Gson;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -14,6 +15,7 @@ import java.util.TreeSet;
 @RunWith(JUnit4.class)
 public class WeixinConfigTest {
     @Test
+    @Ignore
     public void test1() {
         Gson gson = new Gson();
         WeixinConfig config = new WeixinConfig();
