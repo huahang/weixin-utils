@@ -141,11 +141,22 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
                     RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
                     WeixinAPI weixinAPI = adapter.create(WeixinAPI.class);
                     WeixinConfig.Item item = WeixinConfig.get(app);
-                    WeixinAPI.Token token = weixinAPI.getToken("client_credential", item.appID, item.appSecret);
-                    WeixinAPI.Ticket ticket = weixinAPI.getTicket(token.access_token, "jsapi");
                     CachedTokens.Item cacheTokenItem = new CachedTokens.Item();
-                    cacheTokenItem.accessToken = token.access_token;
-                    cacheTokenItem.jsTicket = ticket.ticket;
+                    for (int i = 0; i < 10; ++i) {
+                        WeixinAPI.Token token = weixinAPI.getToken("client_credential", item.appID, item.appSecret);
+                        if (StringUtils.isNoneBlank(token.access_token)) {
+                            cacheTokenItem.accessToken = token.access_token;
+                            break;
+                        }
+                    }
+                    for (int i = 0; i < 10; ++i) {
+                        WeixinAPI.Ticket ticket = weixinAPI.getTicket(cacheTokenItem.accessToken, "jsapi");
+                        if (StringUtils.isNoneBlank(ticket.ticket)) {
+                            cacheTokenItem.jsTicket = ticket.ticket;
+                            break;
+                        }
+
+                    }
                     cachedTokens.map.put(app, cacheTokenItem);
                 }
                 cachedTokens.updateTime = System.currentTimeMillis();
