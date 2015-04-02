@@ -122,7 +122,7 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
                 CachedTokens cachedTokens = getCachedTokens();
                 long updateTime = (null == cachedTokens) ? 0 : cachedTokens.updateTime;
                 long duration = System.currentTimeMillis() - updateTime;
-                if (duration < 0 || duration > TimeUnit.MINUTES.toMillis(30)) {
+                if (Math.abs(duration) > TimeUnit.MINUTES.toMillis(30)) {
                     needRefresh = true;
                 }
             } catch (Throwable t) {
