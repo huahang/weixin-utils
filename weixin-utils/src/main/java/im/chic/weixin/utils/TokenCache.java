@@ -138,8 +138,7 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
                     cachedTokens = new CachedTokens();
                 }
                 for (String app : apps) {
-                    RestAdapter adapter = (new RestAdapter.Builder()).setEndpoint("https://api.weixin.qq.com").build();
-                    WeixinAPI weixinAPI = adapter.create(WeixinAPI.class);
+                    WeixinAPI weixinAPI = WeixinAPIUtils.getWeixinAPI(TokenCache.class);
                     WeixinConfig.Item item = WeixinConfig.get(app);
                     if (StringUtils.isBlank(item.appID) || StringUtils.isBlank(item.appSecret)) {
                         continue;
