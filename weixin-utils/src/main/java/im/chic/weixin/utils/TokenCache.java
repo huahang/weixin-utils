@@ -63,7 +63,7 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
             CachedTokens cachedTokens = instance.getCachedTokens();
             return cachedTokens.map.get(appID).accessToken;
         } catch (Throwable t) {
-            logger.error("Hit an error!", t);
+            logger.error("Hit an error! getAccessToken(appID: {})", appID, t);
         }
         return null;
     }
@@ -74,7 +74,7 @@ public class TokenCache extends LeaderSelectorListenerAdapter implements Closeab
             CachedTokens cachedTokens = instance.getCachedTokens();
             return cachedTokens.map.get(appID).jsTicket;
         } catch (Throwable t) {
-            logger.error("Hit an error!", t);
+            logger.error("Hit an error! getJsTicket(appID: {})", appID, t);
         }
         return null;
     }
